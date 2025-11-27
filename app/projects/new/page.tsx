@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -54,6 +55,8 @@ export default function NewProjectPage() {
   async function onSubmit(values: NewProjectFormValues) {
     setIsSubmitting(true);
 
+    const loadingToast = toast.loading("Creating project...");
+
     const formData = new FormData();
     formData.append("title", values.title);
     formData.append("description", values.description);
@@ -70,14 +73,23 @@ export default function NewProjectPage() {
       const data = await response.json();
 
       if (data.ok) {
-        alert("Project created successfully!");
+        toast.success("Project received successfully", {
+          id: loadingToast,
+          description: "Your project has been created.",
+        });
         router.push("/projects");
       } else {
-        alert("Failed to create project: " + (data.error || "Unknown error"));
+        toast.error("Failed to create project", {
+          id: loadingToast,
+          description: data.error || "Unknown error occurred",
+        });
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("An error occurred while submitting the form");
+      toast.error("Failed to create project", {
+        id: loadingToast,
+        description: "An unexpected error occurred. Please try again.",
+      });
     } finally {
       setIsSubmitting(false);
     }

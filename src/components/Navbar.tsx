@@ -3,14 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Menu } from "lucide-react";
+import { useUser } from "@auth0/nextjs-auth0";
+import { Moon, Sun, Menu, LogIn, LogOut, LayoutDashboard } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -22,6 +23,7 @@ import {
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
+  const { user, isLoading } = useUser();
   const [mounted, setMounted] = React.useState(false);
   const [open, setOpen] = React.useState(false);
 
@@ -30,11 +32,11 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
-  const navItems = [
+  const publicNavItems = [
     { href: "/", label: "Home" },
     { href: "/projects", label: "Projects" },
     { href: "/resume", label: "Resume" },
-    { href: "/login", label: "Login" },
+    { href: "/contact", label: "Contact" },
   ];
 
   return (
@@ -51,15 +53,49 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-4">
           <NavigationMenu>
             <NavigationMenuList>
-              {navItems.map((item) => (
+              {publicNavItems.map((item) => (
                 <NavigationMenuItem key={item.href}>
-                  <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-                    <Link href={item.href}>{item.label}</Link>
-                  </NavigationMenuLink>
+                  <Link href={item.href} className={navigationMenuTriggerStyle()}>
+                    {item.label}
+                  </Link>
                 </NavigationMenuItem>
               ))}
+
+              {/* Auth-dependent items */}
+              {!isLoading && user && (
+                <NavigationMenuItem>
+                  <Link
+                    href="/dashboard"
+                    className={cn(navigationMenuTriggerStyle(), "flex items-center")}
+                  >
+                    <LayoutDashboard className="h-4 w-4 mr-1" />
+                    Dashboard
+                  </Link>
+                </NavigationMenuItem>
+              )}
             </NavigationMenuList>
           </NavigationMenu>
+
+          {/* Auth Button */}
+          {!isLoading && (
+            <>
+              {user ? (
+                <Button asChild variant="outline" size="sm">
+                  <a href="/auth/logout">
+                    <LogOut className="h-4 w-4 mr-1" />
+                    Logout
+                  </a>
+                </Button>
+              ) : (
+                <Button asChild variant="default" size="sm">
+                  <a href="/auth/login">
+                    <LogIn className="h-4 w-4 mr-1" />
+                    Login
+                  </a>
+                </Button>
+              )}
+            </>
+          )}
 
           {/* Dark Mode Toggle - Desktop */}
           {mounted && (
@@ -109,7 +145,7 @@ export default function Navbar() {
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-4 mt-8">
-                {navItems.map((item) => (
+                {publicNavItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -119,6 +155,43 @@ export default function Navbar() {
                     {item.label}
                   </Link>
                 ))}
+
+                {/* Auth-dependent mobile items */}
+                {!isLoading && user && (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="text-lg font-medium hover:text-primary transition-colors flex items-center gap-2"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </Link>
+                )}
+
+                {/* Auth Button - Mobile */}
+                {!isLoading && (
+                  <div className="pt-4 border-t">
+                    {user ? (
+                      <a
+                        href="/auth/logout"
+                        onClick={() => setOpen(false)}
+                        className="text-lg font-medium hover:text-primary transition-colors flex items-center gap-2"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        Logout
+                      </a>
+                    ) : (
+                      <a
+                        href="/auth/login"
+                        onClick={() => setOpen(false)}
+                        className="text-lg font-medium hover:text-primary transition-colors flex items-center gap-2"
+                      >
+                        <LogIn className="h-4 w-4" />
+                        Login
+                      </a>
+                    )}
+                  </div>
+                )}
               </nav>
             </SheetContent>
           </Sheet>

@@ -4,32 +4,21 @@ import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { createSlug } from "@/lib/utils";
-
-interface Project {
-  title: string;
-  description: string;
-  image: string;
-  link: string;
-  keywords: string[];
-}
+import { auth0 } from "@/lib/auth0";
+import { getProjectById } from "@/lib/db";
+import DeleteProjectButton from "./delete-button";
 
 interface ProjectDetailPageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ uuid: string }>;
 }
 
 export default async function ProjectDetailPage({
   params,
 }: ProjectDetailPageProps) {
-  const { slug } = await params;
+  const { uuid } = await params;
+  const session = await auth0.getSession();
 
-  // Fetch all projects and find the one matching the slug
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/projects`, {
-    cache: "no-store",
-  });
-  const { projects } = (await res.json()) as { projects: Project[] };
-
-  const project = projects.find((p) => createSlug(p.title) === slug);
+  const project = await getProjectById(uuid);
 
   if (!project) {
     notFound();
@@ -37,10 +26,18 @@ export default async function ProjectDetailPage({
 
   return (
     <main className="container mx-auto px-4 py-8 md:py-12">
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Button asChild variant="outline" size="sm">
           <Link href="/projects">Back to Projects</Link>
         </Button>
+        {session?.user && (
+          <div className="flex gap-2">
+            <Button asChild size="sm">
+              <Link href={`/projects/${uuid}/edit`}>Edit Project</Link>
+            </Button>
+            <DeleteProjectButton id={uuid} title={project.title} />
+          </div>
+        )}
       </div>
 
       <Card className="max-w-4xl mx-auto overflow-hidden">
