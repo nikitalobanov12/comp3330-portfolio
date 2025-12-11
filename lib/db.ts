@@ -27,19 +27,33 @@ interface ProjectRow {
   description: string;
   image: string;
   link: string;
-  keywords: string[];
+  keywords: string[] | string; // JSONB can be parsed or string
   created_at: Date;
   updated_at: Date;
 }
 
 function mapProject(row: ProjectRow): Project {
+  // Handle keywords - might be a string (JSON) or already parsed array
+  let keywords: string[] = [];
+  if (row.keywords) {
+    if (typeof row.keywords === "string") {
+      try {
+        keywords = JSON.parse(row.keywords);
+      } catch {
+        keywords = [];
+      }
+    } else if (Array.isArray(row.keywords)) {
+      keywords = row.keywords;
+    }
+  }
+
   return {
     id: row.id,
     title: row.title,
     description: row.description,
     image: row.image,
     link: row.link,
-    keywords: row.keywords ?? [],
+    keywords,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
