@@ -36,10 +36,9 @@ export default async function RootLayout({
   let session = null;
   try {
     session = await auth0.getSession();
-  } catch (error) {
-    // Handle invalid session (e.g., corrupted JWE cookie)
-    // The middleware will redirect to logout to clear the cookie
-    console.error("Failed to get session:", error);
+  } catch {
+    // Expected during static generation (no cookies available)
+    // Also handles invalid/corrupted JWE cookies at runtime
   }
 
   return (
