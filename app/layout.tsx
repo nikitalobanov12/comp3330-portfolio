@@ -33,7 +33,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth0.getSession();
+  let session = null;
+  try {
+    session = await auth0.getSession();
+  } catch (error) {
+    // Handle invalid session (e.g., corrupted JWE cookie)
+    // The middleware will redirect to logout to clear the cookie
+    console.error("Failed to get session:", error);
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>

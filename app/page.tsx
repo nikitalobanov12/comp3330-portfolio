@@ -2,6 +2,9 @@ import MyHeroSection from "@/src/components/MyHeroSection";
 import ProjectPreviewCard from "@/src/components/project-preview-card";
 import GitHubCalendar from "@/src/components/github-calendar";
 
+// Force dynamic rendering to fetch fresh hero data on each request
+export const revalidate = 0;
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen w-full">
